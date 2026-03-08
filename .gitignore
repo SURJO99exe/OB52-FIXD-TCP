@@ -1,5 +1,5 @@
 # Python
-__pycache__/
+# __pycache__/  # Commented out - user wants this uploaded
 *.py[cod]
 *$py.class
 *.so
@@ -24,3 +24,6 @@ Thumbs.db
 
 # Local config
 config.local.json
+
+# Git
+.git/
