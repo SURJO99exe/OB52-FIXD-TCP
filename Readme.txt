@@ -41,13 +41,15 @@
 
 
 ═══════════════════════════════════════════════════════════════════════════════
-                         🎮 GAME COMMANDS (4)
+                         🎮 GAME COMMANDS (6)
 ═══════════════════════════════════════════════════════════════════════════════
 
 /kick [uid]              → Kick squad member by UID
 /leave                   → Leave current squad  
 /start                   → Start the match
 /autoaccept              → Toggle auto-accept invitations ON/OFF
+/autostart               → Toggle auto-start match on squad join ON/OFF
+/map [name]              → Select map (bermuda, kalahari, alpine, purgatory, nexterra)
 
 
 ═══════════════════════════════════════════════════════════════════════════════

@@ -27,6 +27,11 @@ BYPASS_TOKEN = "your_bypass_token_here"
 auto_accept_invite = True  # Auto-accept squad invitations
 auto_accept_delay = 1.0  # seconds to wait before accepting
 
+# Auto-start match settings
+auto_start_on_join = False  # Auto-start match when joining squad
+auto_start_delay = 3.0  # seconds to wait before auto-starting
+selected_map = "bermuda"  # Default map selection
+
 # Animation settings
 rainbow_running = False
 rainbow_task = None
@@ -4375,7 +4380,7 @@ async def TcPOnLine(ip, port, key, iv, AutHToKen, uid, timestamp, reconnect_dela
 async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event, region , reconnect_delay=5):
     print(region, 'TCP CHAT')
 
-    global spam_room , whisper_writer , spammer_uid , spam_chat_id , spam_uid , online_writer , chat_id , XX , uid , Spy,data2, Chat_Leave, fast_spam_running, fast_spam_task, custom_spam_running, custom_spam_task, spam_request_running, spam_request_task, evo_fast_spam_running, evo_fast_spam_task, evo_custom_spam_running, evo_custom_spam_task, lag_running, lag_task, evo_cycle_running, evo_cycle_task, reject_spam_running, reject_spam_task, auto_accept_invite
+    global spam_room , whisper_writer , spammer_uid , spam_chat_id , spam_uid , online_writer , chat_id , XX , uid , Spy,data2, Chat_Leave, fast_spam_running, fast_spam_task, custom_spam_running, custom_spam_task, spam_request_running, spam_request_task, evo_fast_spam_running, evo_fast_spam_task, evo_custom_spam_running, evo_custom_spam_task, lag_running, lag_task, evo_cycle_running, evo_cycle_task, reject_spam_running, reject_spam_task, auto_accept_invite, auto_start_on_join, selected_map
     while True:
         try:
             reader , writer = await asyncio.open_connection(ip, int(port))
@@ -4431,6 +4436,17 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                                                     whisper_writer.write(accept_packet)
                                                     await whisper_writer.drain()
                                                     print(f"[AUTO-ACCEPT] Joined squad: {inviter_uid}")
+                                                    
+                                                    # AUTO-START MATCH after joining squad
+                                                    if auto_start_on_join:
+                                                        print(f"[AUTO-START] Auto-start enabled, waiting {auto_start_delay}s then starting match...")
+                                                        await asyncio.sleep(auto_start_delay)
+                                                        try:
+                                                            start_packet = await send_start_packet(key, iv, region)
+                                                            await SEndPacKeT('OnLine', start_packet)
+                                                            print(f"[AUTO-START] Match started automatically!")
+                                                        except Exception as e:
+                                                            print(f"[AUTO-START] Error auto-starting: {e}")
                                                 break
                                 except:
                                     continue
@@ -5051,6 +5067,8 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
 [00FFFF]/leave [FFFFFF]- Leave squad
 [00FFFF]/start [FFFFFF]- Start match
 [00FFFF]/autoaccept [FFFFFF]- Toggle auto-accept invites
+[00FFFF]/autostart [FFFFFF]- Toggle auto-start on join
+[00FFFF]/map [name] [FFFFFF]- Select map
 [FFFFFF]
 [FFD700]━━━[FF0000] EMOTES & ANIMATIONS [FF0000]━━━[FFD700]
 [00FFFF]/evo [1-18] [FFFFFF]- Standard emotes
@@ -5614,6 +5632,38 @@ Mode: [00FF00]{scrim_name}
                             auto_accept_invite = not auto_accept_invite
                             status = "[00FF00]ENABLED ✅" if auto_accept_invite else "[FF0000]DISABLED ❌"
                             await safe_send_message(response.Data.chat_type, f"[B][C][00FFFF]🤖 Auto-accept invitations: {status}", uid, chat_id, key, iv)
+
+                        # AUTO-START TOGGLE - /autostart
+                        if inPuTMsG.strip() == '/autostart':
+                            auto_start_on_join = not auto_start_on_join
+                            status = "[00FF00]ENABLED ✅" if auto_start_on_join else "[FF0000]DISABLED ❌"
+                            delay_info = f"\n[FFFFFF]Delay: {auto_start_delay}s" if auto_start_on_join else ""
+                            await safe_send_message(response.Data.chat_type, f"[B][C][00FFFF]🎮 Auto-start match on join: {status}{delay_info}", uid, chat_id, key, iv)
+
+                        # MAP SELECTION - /map
+                        if inPuTMsG.strip().startswith('/map'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                map_list = """[B][C][00FF00]🗺️ AVAILABLE MAPS
+[FF6347]━━━━━━━━━━━━━━━━━━━━━━━
+[FFFFFF]• bermuda
+[FFFFFF]• kalahari
+[FFFFFF]• alpine
+[FFFFFF]• purgatory
+[FFFFFF]• nexterra
+[FF6347]━━━━━━━━━━━━━━━━━━━━━━━
+[00FFFF]Current: [FFFFFF]""" + selected_map + """
+[00FF00]Usage: /map [name]
+[FFFFFF]Example: /map kalahari"""
+                                await safe_send_message(response.Data.chat_type, map_list, uid, chat_id, key, iv)
+                            else:
+                                map_name = parts[1].lower()
+                                available_maps = ["bermuda", "kalahari", "alpine", "purgatory", "nexterra"]
+                                if map_name in available_maps:
+                                    selected_map = map_name
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][00FF00]✅ Map selected: [FFFFFF]{selected_map}", uid, chat_id, key, iv)
+                                else:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Invalid map! Use /map for list", uid, chat_id, key, iv)
 
                         if inPuTMsG.startswith(("/3")):
                             # Process /3 command - Create 3 player group
