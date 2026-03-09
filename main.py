@@ -2495,8 +2495,8 @@ def bundle_packet(self, bundle_id, target_uid):
         final_packet = final_header + header_length_hex + encrypted
         return bytes.fromhex(final_packet)
 
-async def bundle_packet_async(bundle_id, key, iv, region="ind"):
-    """Create bundle packet"""
+async def bundle_packet_async(bundle_id, key, iv, region="ind", target_uid=None):
+    """Create bundle packet with optional target UID"""
     fields = {
         1: 88,
         2: {
@@ -2507,6 +2507,10 @@ async def bundle_packet_async(bundle_id, key, iv, region="ind"):
             2: 2
         }
     }
+    
+    # Add target_uid if provided for direct targeting
+    if target_uid:
+        fields[2][3] = {"1": int(target_uid)}
     
     # Use your CrEaTe_ProTo function
     packet = await CrEaTe_ProTo(fields)
@@ -4819,7 +4823,7 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
 
 # ================= BUNDLE COMMAND START =================
    # ================= FINAL BUNDLE COMMAND (FAST) =================
-                        if inPuTMsG.strip().startswith('/bundle'):
+                        if inPuTMsG.strip().startswith('/bundle') and not inPuTMsG.strip().startswith('/bundleall'):
                             print('Processing bundle command')
     
                             parts = inPuTMsG.strip().split()
@@ -4840,33 +4844,55 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
 [FFFFFF]• dreamspace
 [FFFFFF]• itachi
 [FF6347]━[32CD32]━[7B68EE]━[FF4500]━[1E90FF]━[ADFF2F]━[FF69B4]━[8A2BE2]━[DC143C]━[FF8C00]━[BA55D3]━[7CFC00]━[FFC0CB]
-[00FF00]Usage: /bundle [name]
-[FFFFFF]Example: /bundle midnight"""
+[00FF00]Usage: /bundle [uid] [name]
+[FFFFFF]Example: /bundle 123456789 midnight
+[FFFF00]⚠️ Without UID: sends to random
+[00FFFF]With UID: sends to specific player"""
                                 await safe_send_message(response.Data.chat_type, bundle_list, uid, chat_id, key, iv)
                             else:
-                                bundle_name = parts[1].lower()
+                                # Check if first part is UID (numeric) or bundle name
+                                if parts[1].isdigit() and len(parts) >= 3:
+                                    # Format: /bundle [uid] [name]
+                                    target_uid = parts[1]
+                                    bundle_name = parts[2].lower()
+                                    use_uid = True
+                                else:
+                                    # Format: /bundle [name] (no UID)
+                                    bundle_name = parts[1].lower()
+                                    target_uid = None
+                                    use_uid = False
         
-                                # All bundles use the same ID: 914000002
+                                # Get bundle ID
                                 bundle_id = BUNDLE.get(bundle_name)
         
-                                initial_msg = f"[B][C][00FF00]🎁 Sending {bundle_name}\n"
-                                await safe_send_message(response.Data.chat_type, initial_msg, uid, chat_id, key, iv)
-        
-                                try:
-                                    # Create bundle packet
-                                    bundle_packet = await bundle_packet_async(bundle_id, key, iv, region)
-            
-                                    if bundle_packet and online_writer:
-                                        await SEndPacKeT('OnLine', bundle_packet)
-                                        success_msg = f"[B][C][00FF00]✅ Done: {bundle_name}"
-                                        await safe_send_message(response.Data.chat_type, success_msg, uid, chat_id, key, iv)
-                                    else:
-                                        error_msg = f"[B][C][FF0000]❌ Failed to create bundle packet!\n"
-                                        await safe_send_message(response.Data.chat_type, error_msg, uid, chat_id, key, iv)
-                
-                                except Exception as e:
-                                    error_msg = f"[B][C][FF0000]❌ Error sending bundle: {str(e)[:50]}\n"
+                                if not bundle_id:
+                                    error_msg = f"[B][C][FF0000]❌ Bundle '{bundle_name}' not found!\n[FFFFFF]Use /bundle for list"
                                     await safe_send_message(response.Data.chat_type, error_msg, uid, chat_id, key, iv)
+                                else:
+                                    if use_uid:
+                                        initial_msg = f"[B][C][00FF00]🎁 Sending {bundle_name} to UID: {target_uid}\n"
+                                    else:
+                                        initial_msg = f"[B][C][00FF00]🎁 Sending {bundle_name}\n"
+                                    await safe_send_message(response.Data.chat_type, initial_msg, uid, chat_id, key, iv)
+        
+                                    try:
+                                        # Create bundle packet with UID if provided
+                                        bundle_packet = await bundle_packet_async(bundle_id, key, iv, region, target_uid)
+            
+                                        if bundle_packet and online_writer:
+                                            await SEndPacKeT('OnLine', bundle_packet)
+                                            if use_uid:
+                                                success_msg = f"[B][C][00FF00]✅ Sent {bundle_name} to {target_uid}!"
+                                            else:
+                                                success_msg = f"[B][C][00FF00]✅ Done: {bundle_name}"
+                                            await safe_send_message(response.Data.chat_type, success_msg, uid, chat_id, key, iv)
+                                        else:
+                                            error_msg = f"[B][C][FF0000]❌ Failed to create bundle packet!\n"
+                                            await safe_send_message(response.Data.chat_type, error_msg, uid, chat_id, key, iv)
+                
+                                    except Exception as e:
+                                        error_msg = f"[B][C][FF0000]❌ Error sending bundle: {str(e)[:50]}\n"
+                                        await safe_send_message(response.Data.chat_type, error_msg, uid, chat_id, key, iv)
 
                         # BUNDLE ALL - Share bundle with entire group/squad
                         if inPuTMsG.strip().startswith('/bundleall'):

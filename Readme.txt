@@ -267,7 +267,7 @@ STRATEGIES (/strategy [type]):
 /ig [username]          → Instagram info
 /ms [message]           → Message spam (30 messages)
 /gali [name]            → Gali spam
-/bundle [name]          → Send bundle
+/bundle [uid] [name]     → Send bundle to specific player (with UID)
 /bundleall [name]       → Share bundle with entire squad
 /inv [uid]              → Invite player
 /3                      → Create 3-player group
