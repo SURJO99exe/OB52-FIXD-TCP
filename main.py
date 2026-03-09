@@ -4401,28 +4401,37 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                 # AUTO-ACCEPT INVITATION LOGIC
                 if auto_accept_invite:
                     hex_data = data.hex()
-                    print(f"[DEBUG] Packet received: {hex_data[:30]}...")
-                    if hex_data.startswith("0800"):
+                    # Check for invitation packets - look for various signatures
+                    is_invitation = (
+                        hex_data.startswith("0800") or  # Old format
+                        hex_data.startswith("120000") or  # Chat packet might contain invite
+                        (len(hex_data) > 20 and "6e76" in hex_data[:50])  # "nv" in hex (part of invitation)
+                    )
+                    if is_invitation:
                         try:
-                            # Parse invitation packet
-                            msg_data = DeCode_PackEt(data.hex()[8:])
-                            print(f"[DEBUG] Parsed invitation data: {msg_data[:100] if msg_data else 'None'}...")
-                            if msg_data and '"1": 2' in msg_data:
-                                # Extract inviter UID from packet
-                                packet_json = json.loads(msg_data)
-                                if '2' in packet_json and '1' in packet_json.get('2', {}):
-                                    inviter_uid = packet_json['2']['1']['data']
-                                    print(f"[AUTO-ACCEPT] Invitation received from: {inviter_uid}")
-                                    
-                                    # Send accept packet
-                                    await asyncio.sleep(auto_accept_delay)
-                                    accept_packet = await GenJoinSquadsPacket(str(inviter_uid), key, iv)
-                                    if whisper_writer:
-                                        whisper_writer.write(accept_packet)
-                                        await whisper_writer.drain()
-                                        print(f"[AUTO-ACCEPT] Automatically joined squad of: {inviter_uid}")
+                            # Try different offsets to parse
+                            for offset in [0, 8, 10]:
+                                try:
+                                    if len(hex_data) > offset * 2:
+                                        msg_data = DeCode_PackEt(hex_data[offset:])
+                                        if msg_data and ('"1": 2' in msg_data or 'invit' in msg_data.lower() or 'join' in msg_data.lower()):
+                                            print(f"[DEBUG] Potential invite at offset {offset}: {msg_data[:150]}...")
+                                            # Try to extract UID
+                                            packet_json = json.loads(msg_data)
+                                            if '2' in packet_json and '1' in packet_json.get('2', {}):
+                                                inviter_uid = packet_json['2']['1']['data']
+                                                print(f"[AUTO-ACCEPT] Invitation from: {inviter_uid}")
+                                                await asyncio.sleep(auto_accept_delay)
+                                                accept_packet = await GenJoinSquadsPacket(str(inviter_uid), key, iv)
+                                                if whisper_writer:
+                                                    whisper_writer.write(accept_packet)
+                                                    await whisper_writer.drain()
+                                                    print(f"[AUTO-ACCEPT] Joined squad: {inviter_uid}")
+                                                break
+                                except:
+                                    continue
                         except Exception as e:
-                            print(f"[AUTO-ACCEPT] Error processing invitation: {e}")
+                            print(f"[AUTO-ACCEPT] Error: {e}")
                 
                 if data.hex().startswith("120000"):
 
