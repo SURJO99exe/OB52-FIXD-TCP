@@ -4868,6 +4868,63 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                                     error_msg = f"[B][C][FF0000]❌ Error sending bundle: {str(e)[:50]}\n"
                                     await safe_send_message(response.Data.chat_type, error_msg, uid, chat_id, key, iv)
 
+                        # BUNDLE ALL - Share bundle with entire group/squad
+                        if inPuTMsG.strip().startswith('/bundleall'):
+                            print('Processing bundleall command')
+                            
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                bundleall_list = """[B][C][00FFFF]🎁 BUNDLE ALL - Share with Squad!
+[FF6347]━━━━━━━━━━━━━━━━━━━━━━━
+[FFFFFF]Available bundles:
+[FFFFFF]• rampage
+[FFFFFF]• cannibal
+[FFFFFF]• devil
+[FFFFFF]• scorpio
+[FFFFFF]• frostfire
+[FFFFFF]• paradox
+[FFFFFF]• naruto
+[FFFFFF]• aurora
+[FFFFFF]• midnight
+[FFFFFF]• itachi
+[FFFFFF]• dreamspace
+[FF6347]━━━━━━━━━━━━━━━━━━━━━━━
+[00FF00]Usage: /bundleall [name]
+[FFFFFF]Example: /bundleall midnight
+[FFFF00]⚡ This sends bundle to entire squad!"""
+                                await safe_send_message(response.Data.chat_type, bundleall_list, uid, chat_id, key, iv)
+                            else:
+                                bundle_name = parts[1].lower()
+                                bundle_id = BUNDLE.get(bundle_name)
+                                
+                                if not bundle_id:
+                                    error_msg = f"[B][C][FF0000]❌ Bundle '{bundle_name}' not found!\n[FFFFFF]Use /bundleall for list"
+                                    await safe_send_message(response.Data.chat_type, error_msg, uid, chat_id, key, iv)
+                                else:
+                                    initial_msg = f"[B][C][00FF00]🎁 Sharing {bundle_name} with entire squad...\n"
+                                    await safe_send_message(response.Data.chat_type, initial_msg, uid, chat_id, key, iv)
+                                    
+                                    try:
+                                        # Send bundle packet 5 times for squad members
+                                        sent_count = 0
+                                        for i in range(5):  # Send to 5 squad slots
+                                            try:
+                                                bundle_packet = await bundle_packet_async(bundle_id, key, iv, region)
+                                                if bundle_packet and online_writer:
+                                                    await SEndPacKeT('OnLine', bundle_packet)
+                                                    await asyncio.sleep(0.2)  # Small delay between sends
+                                                    sent_count += 1
+                                            except Exception as e:
+                                                print(f"Bundle send error for slot {i}: {e}")
+                                                continue
+                                        
+                                        success_msg = f"[B][C][00FF00]✅ {bundle_name} shared with squad!\n[FFFFFF]({sent_count}x sent)"
+                                        await safe_send_message(response.Data.chat_type, success_msg, uid, chat_id, key, iv)
+                                        
+                                    except Exception as e:
+                                        error_msg = f"[B][C][FF0000]❌ Error sharing bundle: {str(e)[:50]}"
+                                        await safe_send_message(response.Data.chat_type, error_msg, uid, chat_id, key, iv)
+
                         # ===============================================================
 
                         # Invite Command - /inv (creates 5-player group and sends request)

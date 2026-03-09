@@ -268,6 +268,7 @@ STRATEGIES (/strategy [type]):
 /ms [message]           → Message spam (30 messages)
 /gali [name]            → Gali spam
 /bundle [name]          → Send bundle
+/bundleall [name]       → Share bundle with entire squad
 /inv [uid]              → Invite player
 /3                      → Create 3-player group
 /6                      → Create 6-player group
