@@ -4399,26 +4399,30 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                 if not data: break
                 
                 # AUTO-ACCEPT INVITATION LOGIC
-                if auto_accept_invite and data.hex().startswith("0800"):
-                    try:
-                        # Parse invitation packet
-                        msg_data = DeCode_PackEt(data.hex()[8:])
-                        if msg_data and '"1": 2' in msg_data:
-                            # Extract inviter UID from packet
-                            packet_json = json.loads(msg_data)
-                            if '2' in packet_json and '1' in packet_json.get('2', {}):
-                                inviter_uid = packet_json['2']['1']['data']
-                                print(f"[AUTO-ACCEPT] Invitation received from: {inviter_uid}")
-                                
-                                # Send accept packet
-                                await asyncio.sleep(auto_accept_delay)
-                                accept_packet = await GenJoinSquadsPacket(str(inviter_uid), key, iv)
-                                if whisper_writer:
-                                    whisper_writer.write(accept_packet)
-                                    await whisper_writer.drain()
-                                    print(f"[AUTO-ACCEPT] Automatically joined squad of: {inviter_uid}")
-                    except Exception as e:
-                        print(f"[AUTO-ACCEPT] Error processing invitation: {e}")
+                if auto_accept_invite:
+                    hex_data = data.hex()
+                    print(f"[DEBUG] Packet received: {hex_data[:30]}...")
+                    if hex_data.startswith("0800"):
+                        try:
+                            # Parse invitation packet
+                            msg_data = DeCode_PackEt(data.hex()[8:])
+                            print(f"[DEBUG] Parsed invitation data: {msg_data[:100] if msg_data else 'None'}...")
+                            if msg_data and '"1": 2' in msg_data:
+                                # Extract inviter UID from packet
+                                packet_json = json.loads(msg_data)
+                                if '2' in packet_json and '1' in packet_json.get('2', {}):
+                                    inviter_uid = packet_json['2']['1']['data']
+                                    print(f"[AUTO-ACCEPT] Invitation received from: {inviter_uid}")
+                                    
+                                    # Send accept packet
+                                    await asyncio.sleep(auto_accept_delay)
+                                    accept_packet = await GenJoinSquadsPacket(str(inviter_uid), key, iv)
+                                    if whisper_writer:
+                                        whisper_writer.write(accept_packet)
+                                        await whisper_writer.drain()
+                                        print(f"[AUTO-ACCEPT] Automatically joined squad of: {inviter_uid}")
+                        except Exception as e:
+                            print(f"[AUTO-ACCEPT] Error processing invitation: {e}")
                 
                 if data.hex().startswith("120000"):
 
@@ -5515,7 +5519,6 @@ Mode: [00FF00]{scrim_name}
 
                         # AUTO-ACCEPT TOGGLE - /autoaccept
                         if inPuTMsG.strip() == '/autoaccept':
-                            global auto_accept_invite
                             auto_accept_invite = not auto_accept_invite
                             status = "[00FF00]ENABLED ✅" if auto_accept_invite else "[FF0000]DISABLED ❌"
                             await safe_send_message(response.Data.chat_type, f"[B][C][00FFFF]🤖 Auto-accept invitations: {status}", uid, chat_id, key, iv)
