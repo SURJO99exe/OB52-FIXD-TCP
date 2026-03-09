@@ -1,26 +1,18 @@
-import requests , os , psutil , sys , jwt , pickle , json , binascii , time , urllib3 , base64 , datetime , re , socket , threading , ssl , pytz , aiohttp
+import requests, os, psutil, sys, jwt, pickle, json, binascii, time, urllib3, base64, datetime, re, socket, threading, ssl, pytz, aiohttp, random
 from protobuf_decoder.protobuf_decoder import Parser
-from xC4 import * ; from xHeaders import *
+from xC4 import *; from xHeaders import *
 from datetime import datetime
 from google.protobuf.timestamp_pb2 import Timestamp
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
-from Pb2 import DEcwHisPErMsG_pb2 , MajoRLoGinrEs_pb2 , PorTs_pb2 , MajoRLoGinrEq_pb2 , sQ_pb2 , Team_msg_pb2
+from Pb2 import DEcwHisPErMsG_pb2, MajoRLoGinrEs_pb2, PorTs_pb2, MajoRLoGinrEq_pb2, sQ_pb2, Team_msg_pb2
 from cfonts import render, say
 from APIS import insta
 from flask import Flask, jsonify, request
 import asyncio
 import signal
-import sys
-# Add these imports if not already present
-import re
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
-import random
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
-
-
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  
 
@@ -30,6 +22,267 @@ server2 = "BD"
 key2 = "mg24"
 BYPASS_TOKEN = "your_bypass_token_here"
 
+
+# Auto-accept invitation settings
+auto_accept_invite = True  # Auto-accept squad invitations
+auto_accept_delay = 1.0  # seconds to wait before accepting
+
+# Animation settings
+rainbow_running = False
+rainbow_task = None
+flash_running = False
+flash_task = None
+
+# New emote collections
+DANCE_EMOTES = {
+    "1": "909000001",   # Dance 1
+    "2": "909000002",   # Dance 2
+    "3": "909000003",   # Dance 3
+    "4": "909000004",   # Dance 4
+    "5": "909000005",   # Dance 5
+    "6": "909000006",   # Dance 6
+}
+
+RAINBOW_COLORS = ["FF0000", "FF7F00", "FFFF00", "00FF00", "0000FF", "4B0082", "9400D3"]
+
+# RARE EMOTES COLLECTION
+RARE_EMOTES = {
+    "1": "909052001",   # Rare AK
+    "2": "909052002",   # Rare SCAR
+    "3": "909052003",   # Rare MP40
+    "4": "909052004",   # Rare M1014
+    "5": "909052005",   # Rare XM8
+    "6": "909052006",   # Rare UMP
+    "7": "909052007",   # Rare M1887
+    "8": "909052008",   # Rare Groza
+    "9": "909052009",   # Rare M4A1
+    "10": "909052010",  # Rare Thompson
+    "11": "909052011",  # Rare P90
+    "12": "909052012",  # Rare Woodpecker
+}
+
+# LEGENDARY EMOTES COLLECTION
+LEGEND_EMOTES = {
+    "1": "909053001",   # Legend AK
+    "2": "909053002",   # Legend SCAR
+    "3": "909053003",   # Legend MP40
+    "4": "909053004",   # Legend M1887
+    "5": "909053005",   # Legend Groza
+    "6": "909053006",   # Legend M4A1
+    "7": "909053007",   # Legend P90
+    "8": "909053008",   # Legend AWM
+    "9": "909053009",   # Legend Desert Eagle
+    "10": "909053010",  # Legend AN94
+}
+
+# EXCLUSIVE/VIP EMOTES
+VIP_EMOTES = {
+    "1": "909054001",   # VIP Exclusive 1
+    "2": "909054002",   # VIP Exclusive 2
+    "3": "909054003",   # VIP Exclusive 3
+    "4": "909054004",   # VIP Exclusive 4
+    "5": "909054005",   # VIP Exclusive 5
+    "6": "909054006",   # VIP Exclusive 6
+    "7": "909054007",   # VIP Exclusive 7
+    "8": "909054008",   # VIP Exclusive 8
+}
+
+# WEAPON SHOWCASE EMOTES
+WEAPON_EMOTES = {
+    "ak": "909000063",
+    "scar": "909000068",
+    "mp40": "909000075",
+    "mp40_2": "909040010",
+    "m1014": "909000081",
+    "m1014_2": "909039011",
+    "xm8": "909000085",
+    "famas": "909000090",
+    "ump": "909000098",
+    "m1887": "909035007",
+    "woodpecker": "909042008",
+    "groza": "909041005",
+    "m4a1": "909033001",
+    "thompson": "909038010",
+    "g18": "909038012",
+    "parafal": "909045001",
+    "p90": "909049010",
+    "m60": "909051003",
+    "awm": "909036008",
+    "desert_eagle": "909037012",
+    "an94": "909048008",
+    "mp5": "909039004",
+    "vector": "909040008",
+    "sks": "909044012",
+    "m14": "909045012",
+    "sniper": "909046012",
+}
+
+# VICTORY/DANCE EMOTES
+VICTORY_EMOTES = {
+    "1": "909000200",   # Victory Dance 1
+    "2": "909000201",   # Victory Dance 2
+    "3": "909000202",   # Victory Dance 3
+    "4": "909000203",   # Victory Dance 4
+    "5": "909000204",   # Victory Dance 5
+    "6": "909000205",   # Victory Dance 6
+    "7": "909000206",   # Victory Dance 7
+    "8": "909000207",   # Victory Dance 8
+}
+
+# PET SHOWCASE EMOTES
+PET_EMOTES = {
+    "1": "909055001",   # Pet 1 - Kitty
+    "2": "909055002",   # Pet 2 - Puppy
+    "3": "909055003",   # Pet 3 - Panda
+    "4": "909055004",   # Pet 4 - Robot
+    "5": "909055005",   # Pet 5 - Dragon
+    "6": "909055006",   # Pet 6 - Eagle
+    "7": "909055007",   # Pet 7 - Tiger
+    "8": "909055008",   # Pet 8 - Fox
+}
+
+# VEHICLE EMOTES
+VEHICLE_EMOTES = {
+    "1": "909056001",   # SUV
+    "2": "909056002",   # Sports Car
+    "3": "909056003",   # Monster Truck
+    "4": "909056004",   # Motorcycle
+    "5": "909056005",   # Jeep
+    "6": "909056006",   # Tuk-Tuk
+}
+
+# GRAFFITI/SPRAY COLLECTION
+GRAFFITI_SPRAYS = {
+    "1": "909057001",   # Crown
+    "2": "909057002",   # Skull
+    "3": "909057003",   # Fire
+    "4": "909057004",   # Heart
+    "5": "909057005",   # GG
+    "6": "909057006",   # Boss
+}
+
+# QUICK GAME CALLOUTS
+GAME_CALLOUTS = {
+    "enemy": "[B][C][FF0000]⚠️ ENEMY SPOTTED! ⚠️",
+    "backup": "[B][C][0000FF]🆘 NEED BACKUP! 🆘",
+    "help": "[B][C][00FF00]📢 NEED HELP! 📢",
+    "rush": "[B][C][FF8C00]⚡ RUSH! RUSH! RUSH! ⚡",
+    "camp": "[B][C][9400D3]🎯 CAMP HERE! 🎯",
+    "loot": "[B][C][FFD700]💰 LOOT HERE! 💰",
+    "medic": "[B][C][FF69B4]🏥 NEED MEDIC! 🏥",
+    "ammo": "[B][C][1E90FF]🔫 NEED AMMO! 🔫",
+    "thanks": "[B][C][32CD32]🙏 THANKS! 🙏",
+    "gg": "[B][C][FFD700]🏆 GG! WELL PLAYED! 🏆",
+}
+
+# TEAM LOADOUTS
+LOADOUTS = {
+    "sniper": "[B][C][00FFFF]🎯 SNIPER LOADOUT\n[FFFFFF]AWM + MP40 + Level 3 Vest",
+    "rusher": "[B][C][FF4500]⚡ RUSHER LOADOUT\n[FFFFFF]MP40 + M1887 + Level 3 Helmet",
+    "support": "[B][C][32CD32]🛡️ SUPPORT LOADOUT\n[FFFFFF]M4A1 + Thompson + Med Kits",
+    "assault": "[B][C][FF0000]🔫 ASSAULT LOADOUT\n[FFFFFF]AK + SCAR + Grenades",
+}
+
+# TOURNAMENT/SCRIM SYSTEM
+TOURNAMENT_MODES = {
+    "1v1": "1v1 Duel",
+    "2v2": "2v2 Team",
+    "4v4": "4v4 Squad",
+    "solo": "Solo Battle",
+    "duo": "Duo Battle",
+    "squad": "Full Squad",
+}
+
+# RANK PUSH TIPS
+RANK_TIPS = {
+    "bronze": "[B][C][CD7F32]🥉 BRONZE TIPS\n[FFFFFF]• Land in safe zones\n• Collect basic loot\n• Avoid early fights",
+    "silver": "[B][C][C0C0C0]🥈 SILVER TIPS\n[FFFFFF]• Practice close combat\n• Use cover wisely\n• Stay in zone",
+    "gold": "[B][C][FFD700]🥇 GOLD TIPS\n[FFFFFF]• Improve aim training\n• Use grenades\n• Team coordination",
+    "platinum": "[B][C][00FF00]💎 PLATINUM TIPS\n[FFFFFF]• Rush with strategy\n• Headshot practice\n• Quick looting",
+    "diamond": "[B][C][00BFFF]💠 DIAMOND TIPS\n[FFFFFF]• Advanced movement\n• Squad leadership\n• Map awareness",
+    "heroic": "[B][C][FF0000]🔥 HEROIC TIPS\n[FFFFFF]• Pro level tactics\n• Character skills\n• Tournament prep",
+    "grandmaster": "[B][C][9400D3]👑 GRANDMASTER TIPS\n[FFFFFF]• Elite strategies\n• Perfect aim\n• Champion mindset",
+}
+
+# GAME MODES
+GAME_MODES = {
+    "br": "[B][C][FF0000]🔥 BATTLE ROYALE\n[FFFFFF]Classic BR mode - Be the last one standing!",
+    "cs": "[B][C][0000FF]⚔️ CLASH SQUAD\n[FFFFFF]4v4 Team battle - First to 5 rounds wins!",
+    "lone": "[B][C][9400D3]🐺 LONE WOLF\n[FFFFFF]Solo vs Squad - Test your skills!",
+    "rush": "[B][C][FF8C00]⚡ RUSH HOUR\n[FFFFFF]Fast paced action - Quick matches!",
+    "gun": "[B][C][FFD700]🔫 GUN KING\n[FFFFFF]Weapon progression mode!",
+}
+
+# DROP LOCATIONS
+DROP_LOCATIONS = {
+    "peaks": "[B][C][FF0000]🏔️ BERMUDA - PEAKS\n[FFFFFF]High loot | High risk | Great for snipers",
+    "mill": "[B][C][FF8C00]🏭 BERMUDA - MILL\n[FFFFFF]Medium loot | Medium risk | Good loot spread",
+    "dock": "[B][C][1E90FF]⚓ BERMUDA - DOCK\n[FFFFFF]High loot | Medium risk | Close combat",
+    "clock": "[B][C][9400D3]🕐 KALAHARI - CLOCK TOWER\n[FFFFFF]High loot | High risk | Central location",
+    "refinery": "[B][C][FF4500]🏭 KALAHARI - REFINERY\n[FFFFFF]Medium loot | Good cover | Squad fights",
+    "alpine": "[B][C][00FF00]🏔️ ALPINE - MAIN TOWN\n[FFFFFF]High loot | Multiple buildings | Strategy",
+}
+
+# CHARACTER SKILLS INFO
+CHARACTER_SKILLS = {
+    "dj": "[B][C][FF8C00]🎧 DJ ALOK\n[FFFFFF]Skill: Drop the Beat\n[FFFFFF]Creates a 5m aura that increases ally movement speed",
+    "chrono": "[B][C][1E90FF]🛡️ CHRONO\n[FFFFFF]Skill: Time Turner\n[FFFFFF]Creates a force field that blocks damage",
+    "k": "[B][C][FF0000]🔥 K\n[FFFFFF]Skill: Master of All\n[FFFFFF]Increases max EP and EP conversion",
+    "joseph": "[B][C][9400D3]⚡ JOSEPH\n[FFFFFF]Skill: Nutty Movement\n[FFFFFF]Increases movement speed after taking damage",
+    "moco": "[B][C][00FF00]🔍 MOCO\n[FFFFFF]Skill: Hacker's Eye\n[FFFFFF]Tags enemies that you damage",
+    "clu": "[B][C][FF69B4]🎯 CLU\n[FFFFFF]Skill: Detect enemies\n[FFFFFF]Reveals enemy positions",
+    "wolfrahh": "[B][C][FFD700]🐺 WOLFRAHH\n[FFFFFF]Skill: Limelight\n[FFFFFF]Reduces headshot damage",
+    "dasha": "[B][C][FF4500]💃 DASHA\n[FFFFFF]Skill: Partying On\n[FFFFFF]Reduces fall damage and recovery time",
+}
+
+# WEAPON STATS
+WEAPON_STATS = {
+    "ak": "[B][C][FF0000]🔫 AK47\n[FFFFFF]Damage: HIGH | Range: MEDIUM\n[FFFFFF]Best for: Close-Mid range fights",
+    "mp40": "[B][C][FF8C00]🔫 MP40\n[FFFFFF]Damage: MEDIUM | Fire Rate: VERY HIGH\n[FFFFFF]Best for: Close range rush",
+    "awm": "[B][C][1E90FF]🎯 AWM\n[FFFFFF]Damage: EXTREME | Range: LONG\n[FFFFFF]Best for: Long range sniping",
+    "m1887": "[B][C][9400D3]🔫 M1887\n[FFFFFF]Damage: VERY HIGH | Fire Rate: SLOW\n[FFFFFF]Best for: One-shot kills close range",
+    "scar": "[B][C][00FF00]🔫 SCAR\n[FFFFFF]Damage: MEDIUM | Stability: HIGH\n[FFFFFF]Best for: Beginners, stable fire",
+    "m4a1": "[B][C][32CD32]🔫 M4A1\n[FFFFFF]Damage: MEDIUM | Range: GOOD\n[FFFFFF]Best for: All-round performance",
+    "groza": "[B][C][FF0000]🔫 GROZA\n[FFFFFF]Damage: HIGH | Fire Rate: HIGH\n[FFFFFF]Best for: Aggressive gameplay",
+    "ump": "[B][C][FFD700]🔫 UMP\n[FFFFFF]Damage: MEDIUM | Stability: GOOD\n[FFFFFF]Best for: Mid-range fights",
+}
+
+# QUICK STRATEGIES
+STRATEGIES = {
+    "rush": "[B][C][FF0000]⚡ RUSH STRATEGY\n[FFFFFF]• Land hot zone\n[FFFFFF]• Get SMG/Shotgun\n[FFFFFF]• Push immediately\n[FFFFFF]• Keep pressure on",
+    "camp": "[B][C][9400D3]🎯 CAMP STRATEGY\n[FFFFFF]• Land edge of zone\n[FFFFFF]• Get Sniper/AR\n[FFFFFF]• Hold high ground\n[FFFFFF]• Move with zone",
+    "balance": "[B][C][00FF00]⚖️ BALANCED STRATEGY\n[FFFFFF]• Land medium zone\n[FFFFFF]• Get AR/SMG combo\n[FFFFFF]• Play edge fights\n[FFFFFF]• Rotate smart",
+    "sniper": "[B][C][1E90FF]🎯 SNIPER STRATEGY\n[FFFFFF]• Land high ground\n[FFFFFF]• Get AWM/Marksman\n[FFFFFF]• Support team\n[FFFFFF]• Headshot focus",
+}
+
+# EMOTE CATEGORIES HELP
+EMOTE_CATEGORIES = """
+[B][C][00FF00]🎭 EMOTE CATEGORIES 🎭
+[FFFFFF]
+[00FFFF]/evo [1-18] [FFFFFF]- Standard Evo emotes
+[00FFFF]/emote [1-363] [FFFFFF]- All emotes list
+[00FFFF]/dance [1-8] [FFFFFF]- Dance emotes
+[00FFFF]/rare [1-12] [FFFFFF]- Rare collection emotes
+[00FFFF]/legend [1-10] [FFFFFF]- Legendary emotes
+[00FFFF]/vip [1-8] [FFFFFF]- VIP exclusive emotes
+[00FFFF]/weapon [name] [FFFFFF]- Weapon showcase emotes
+[00FFFF]/victory [1-8] [FFFFFF]- Victory celebration emotes
+[00FFFF]/pet [1-8] [FFFFFF]- Pet showcase emotes
+[00FFFF]/vehicle [1-6] [FFFFFF]- Vehicle emotes
+[00FFFF]/graffiti [1-6] [FFFFFF]- Spray graffiti emotes
+[00FFFF]/callout [type] [FFFFFF]- Quick game callouts
+[00FFFF]/loadout [type] [FFFFFF]- Team loadout suggestions
+[00FFFF]/rank [tier] [FFFFFF]- Rank push tips
+[00FFFF]/mode [type] [FFFFFF]- Game mode info
+[00FFFF]/drop [location] [FFFFFF]- Drop location guide
+[00FFFF]/scrim [mode] [FFFFFF]- Tournament/scrim setup
+[00FFFF]/char [name] [FFFFFF]- Character skills info
+[00FFFF]/weaponstats [name] [FFFFFF]- Weapon stats guide
+[00FFFF]/strategy [type] [FFFFFF]- Game strategies
+[00FFFF]/super [id] [count] [FFFFFF]- Spam any emote
+[00FFFF]/rainbow [FFFFFF]- Rainbow animation
+[00FFFF]/flash [FFFFFF]- Flash animation
+"""
 
 # VariabLes dyli 
 #------------------------------------------#
@@ -51,19 +304,14 @@ evo_fast_spam_running = False
 evo_fast_spam_task = None
 evo_custom_spam_running = False
 evo_custom_spam_task = None
-# Add with other global variables
 reject_spam_running = False
 insquad = None 
 joining_team = False 
 reject_spam_task = None
 lag_running = False
 lag_task = None
-# Add these with your other global variables at the top
-reject_spam_running = False
-reject_spam_task = None
 evo_cycle_running = False
 evo_cycle_task = None
-# Add with other global variables at the top
 auto_start_running = False
 auto_start_teamcode = None
 stop_auto = False
@@ -3742,27 +3990,44 @@ async def SEndMsG(H , message , Uid , chat_id , key , iv):
 async def SEndPacKeT(TypE, PacKeT):
     global online_writer, whisper_writer
     try:
-        if TypE == 'ChaT' and whisper_writer:
-            whisper_writer.write(PacKeT)
-            await whisper_writer.drain()
-        elif TypE == 'OnLine' and online_writer:
-            online_writer.write(PacKeT)
-            await online_writer.drain()
+        if TypE == 'ChaT':
+            if whisper_writer:
+                whisper_writer.write(PacKeT)
+                await whisper_writer.drain()
+                return True
+            else:
+                print("❌ whisper_writer is None! Cannot send message.")
+                return False
+        elif TypE == 'OnLine':
+            if online_writer:
+                online_writer.write(PacKeT)
+                await online_writer.drain()
+                return True
+            else:
+                print("❌ online_writer is None! Cannot send packet.")
+                return False
         else:
-            return 'UnsoPorTed TypE ! >> ErrrroR (:():)'
+            print(f"❌ Unsupported Type: {TypE}")
+            return False
     except Exception as e:
         print(f"❌ Error in SEndPacKeT ({TypE}): {e}")
+        return False
 
 async def safe_send_message(chat_type, message, target_uid, chat_id, key, iv, max_retries=3):
     """Safely send message with retry mechanism"""
     for attempt in range(max_retries):
         try:
             P = await SEndMsG(chat_type, message, target_uid, chat_id, key, iv)
-            await SEndPacKeT('ChaT', P)
-            print(f"Message sent successfully on attempt {attempt + 1}")
-            return True
+            result = await SEndPacKeT('ChaT', P)
+            if result:
+                print(f"✅ Message sent successfully on attempt {attempt + 1}")
+                return True
+            else:
+                print(f"❌ SEndPacKeT returned False on attempt {attempt + 1}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(0.5)
         except Exception as e:
-            print(f"Failed to send message (attempt {attempt + 1}): {e}")
+            print(f"❌ Failed to send message (attempt {attempt + 1}): {e}")
             if attempt < max_retries - 1:
                 await asyncio.sleep(0.5)  # Wait before retry
     return False
@@ -4106,7 +4371,7 @@ async def TcPOnLine(ip, port, key, iv, AutHToKen, uid, timestamp, reconnect_dela
 async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event, region , reconnect_delay=5):
     print(region, 'TCP CHAT')
 
-    global spam_room , whisper_writer , spammer_uid , spam_chat_id , spam_uid , online_writer , chat_id , XX , uid , Spy,data2, Chat_Leave, fast_spam_running, fast_spam_task, custom_spam_running, custom_spam_task, spam_request_running, spam_request_task, evo_fast_spam_running, evo_fast_spam_task, evo_custom_spam_running, evo_custom_spam_task, lag_running, lag_task, evo_cycle_running, evo_cycle_task, reject_spam_running, reject_spam_task
+    global spam_room , whisper_writer , spammer_uid , spam_chat_id , spam_uid , online_writer , chat_id , XX , uid , Spy,data2, Chat_Leave, fast_spam_running, fast_spam_task, custom_spam_running, custom_spam_task, spam_request_running, spam_request_task, evo_fast_spam_running, evo_fast_spam_task, evo_custom_spam_running, evo_custom_spam_task, lag_running, lag_task, evo_cycle_running, evo_cycle_task, reject_spam_running, reject_spam_task, auto_accept_invite
     while True:
         try:
             reader , writer = await asyncio.open_connection(ip, int(port))
@@ -4132,6 +4397,28 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                     break
                 
                 if not data: break
+                
+                # AUTO-ACCEPT INVITATION LOGIC
+                if auto_accept_invite and data.hex().startswith("0800"):
+                    try:
+                        # Parse invitation packet
+                        msg_data = DeCode_PackEt(data.hex()[8:])
+                        if msg_data and '"1": 2' in msg_data:
+                            # Extract inviter UID from packet
+                            packet_json = json.loads(msg_data)
+                            if '2' in packet_json and '1' in packet_json.get('2', {}):
+                                inviter_uid = packet_json['2']['1']['data']
+                                print(f"[AUTO-ACCEPT] Invitation received from: {inviter_uid}")
+                                
+                                # Send accept packet
+                                await asyncio.sleep(auto_accept_delay)
+                                accept_packet = await GenJoinSquadsPacket(str(inviter_uid), key, iv)
+                                if whisper_writer:
+                                    whisper_writer.write(accept_packet)
+                                    await whisper_writer.drain()
+                                    print(f"[AUTO-ACCEPT] Automatically joined squad of: {inviter_uid}")
+                    except Exception as e:
+                        print(f"[AUTO-ACCEPT] Error processing invitation: {e}")
                 
                 if data.hex().startswith("120000"):
 
@@ -4204,6 +4491,9 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                                 #TEAM SPAM MESSAGE COMMAND
                         if inPuTMsG.strip().startswith('/ms '):
                             print('Processing /ms command')
+                            
+                            # Send confirmation that command was received
+                            await safe_send_message(response.Data.chat_type, "[B][C][00FF00]🚀 Starting message spam...", uid, chat_id, key, iv)
 
                             try:
                                 parts = inPuTMsG.strip().split(maxsplit=1)
@@ -4223,6 +4513,9 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                                         colored_message = f"[B][C]{color} {user_message}"  # correct format
                                         await safe_send_message(response.Data.chat_type, colored_message, uid, chat_id, key, iv)
                                         await asyncio.sleep(0.5)
+                                    
+                                    # Send completion message
+                                    await safe_send_message(response.Data.chat_type, "[B][C][00FF00]✅ Message spam completed!", uid, chat_id, key, iv)
 
                             except Exception as e:
                                 error_msg = f"[B][C][FF0000]❌ ERROR! Something went wrong:\n{str(e)}"
@@ -4231,6 +4524,9 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                                 #GALI SPAM MESSAGE 
                         if inPuTMsG.strip().startswith('/gali '):
                             print('Processing /gali command')
+                            
+                            # Send confirmation that command was received
+                            await safe_send_message(response.Data.chat_type, "[B][C][00FF00]🔥 Starting gali spam...", uid, chat_id, key, iv)
 
                             try:
                                 parts = inPuTMsG.strip().split(maxsplit=1)
@@ -4270,6 +4566,9 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                                         colored_message = f"[B][C]{get_random_color()} {msg.replace('{Name}', name.upper())}"
                                         await safe_send_message(response.Data.chat_type, colored_message, uid, chat_id, key, iv)
                                         await asyncio.sleep(0.5)
+                                    
+                                    # Send completion message
+                                    await safe_send_message(response.Data.chat_type, "[B][C][00FF00]✅ Gali spam completed!", uid, chat_id, key, iv)
 
                             except Exception as e:
                                 error_msg = f"[B][C][FF0000]❌ ERROR! Something went wrong:\n{str(e)}"
@@ -4610,6 +4909,616 @@ async def TcPChaT(ip, port, AutHToKen, key, iv, LoGinDaTaUncRypTinG, ready_event
                             # SUCCESS MESSAGE
                             success_message = f"[B][C][00FF00]✅ SUCCESS! 6-Player Group invitation sent successfully to {uid}!\n"
                             await safe_send_message(response.Data.chat_type, success_message, uid, chat_id, key, iv)
+
+                        # KICK COMMAND - /kick [uid]
+                        if inPuTMsG.strip().startswith('/kick'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                error_msg = f"[B][C][FF0000]❌ ERROR! Usage: /kick <uid>"
+                                await safe_send_message(response.Data.chat_type, error_msg, uid, chat_id, key, iv)
+                            else:
+                                target_uid = parts[1]
+                                try:
+                                    kick_packet = await send_kick_packet(target_uid, key, iv, region)
+                                    await SEndPacKeT('OnLine', kick_packet)
+                                    success_msg = f"[B][C][00FF00]✅ Kicked member: {target_uid}"
+                                    await safe_send_message(response.Data.chat_type, success_msg, uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Kick Error: {str(e)}", uid, chat_id, key, iv)
+
+                        # LEAVE COMMAND - /leave
+                        if inPuTMsG.strip() == '/leave':
+                            try:
+                                leave_packet = await ExiT(None, key, iv)
+                                await SEndPacKeT('OnLine', leave_packet)
+                                success_msg = f"[B][C][00FF00]✅ Bot left the group!"
+                                await safe_send_message(response.Data.chat_type, success_msg, uid, chat_id, key, iv)
+                            except Exception as e:
+                                await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Leave Error: {str(e)}", uid, chat_id, key, iv)
+
+                        # START COMMAND - /start
+                        if inPuTMsG.strip() == '/start':
+                            try:
+                                start_packet = await send_start_packet(key, iv, region)
+                                await SEndPacKeT('OnLine', start_packet)
+                                success_msg = f"[B][C][00FF00]✅ Match started!"
+                                await safe_send_message(response.Data.chat_type, success_msg, uid, chat_id, key, iv)
+                            except Exception as e:
+                                await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Start Error: {str(e)}", uid, chat_id, key, iv)
+
+                        # HELP COMMAND - /help
+                        if inPuTMsG.strip() == '/help':
+                            help_msg = """[B][C][00FF00]🤖 BOT COMMANDS HELP 🤖
+[FFFFFF]
+[FFD700]━━━[FF0000] GAME COMMANDS [FF0000]━━━[FFD700]
+[00FFFF]/kick [uid] [FFFFFF]- Kick squad member
+[00FFFF]/leave [FFFFFF]- Leave squad
+[00FFFF]/start [FFFFFF]- Start match
+[00FFFF]/autoaccept [FFFFFF]- Toggle auto-accept invites
+[FFFFFF]
+[FFD700]━━━[FF0000] EMOTES & ANIMATIONS [FF0000]━━━[FFD700]
+[00FFFF]/evo [1-18] [FFFFFF]- Standard emotes
+[00FFFF]/emote [1-363] [FFFFFF]- All emotes
+[00FFFF]/dance [1-8] [FFFFFF]- Dance emotes
+[00FFFF]/rare [1-12] [FFFFFF]- Rare collection
+[00FFFF]/legend [1-10] [FFFFFF]- Legendary emotes
+[00FFFF]/vip [1-8] [FFFFFF]- VIP exclusive
+[00FFFF]/weapon [name] [FFFFFF]- Weapon showcase
+[00FFFF]/victory [1-8] [FFFFFF]- Victory dances
+[00FFFF]/pet [1-8] [FFFFFF]- Pet showcase
+[00FFFF]/vehicle [1-6] [FFFFFF]- Vehicle emotes
+[00FFFF]/graffiti [1-6] [FFFFFF]- Spray paints
+[00FFFF]/rainbow [FFFFFF]- Rainbow animation
+[00FFFF]/flash [FFFFFF]- Flash animation
+[00FFFF]/super [id] [count] [FFFFFF]- Emote spam
+[FFFFFF]
+[FFD700]━━━[FF0000] GAME STRATEGY & INFO [FF0000]━━━[FFD700]
+[00FFFF]/callout [type] [FFFFFF]- Quick callouts
+[00FFFF]/loadout [type] [FFFFFF]- Team loadouts
+[00FFFF]/rank [tier] [FFFFFF]- Rank push tips
+[00FFFF]/mode [type] [FFFFFF]- Game modes info
+[00FFFF]/drop [location] [FFFFFF]- Drop locations
+[00FFFF]/scrim [mode] [FFFFFF]- Tournament setup
+[00FFFF]/char [name] [FFFFFF]- Character skills
+[00FFFF]/weaponstats [name] [FFFFFF]- Weapon stats
+[00FFFF]/strategy [type] [FFFFFF]- Game strategies
+[FFFFFF]
+[FFD700]━━━[FF0000] UTILITY COMMANDS [FF0000]━━━[FFD700]
+[00FFFF]/ai [question] [FFFFFF]- Ask AI anything
+[00FFFF]/likes [uid] [FFFFFF]- Send 100 likes
+[00FFFF]/like [uid] [FFFFFF]- Send likes
+[00FFFF]/bio [uid] [FFFFFF]- Get player bio
+[00FFFF]/info [uid] [FFFFFF]- Get player info
+[00FFFF]/check [uid] [FFFFFF]- Check ban status
+[00FFFF]/add [uid] [FFFFFF]- Add friend
+[00FFFF]/remove [uid] [FFFFFF]- Remove friend
+[00FFFF]/ig [username] [FFFFFF]- Instagram info
+[00FFFF]/ms [msg] [FFFFFF]- Message spam
+[00FFFF]/bundle [name] [FFFFFF]- Send bundle
+[00FFFF]/inv [uid] [FFFFFF]- Invite player
+[00FFFF]/3 [FFFFFF]- Create 3-player group
+[00FFFF]/6 [FFFFFF]- Create 6-player group
+[FFFFFF]
+[00FF00]✨ Type /emotes for full emote categories!
+[00FF00]✨ Type any command without args for help!"""
+                            await safe_send_message(response.Data.chat_type, help_msg, uid, chat_id, key, iv)
+
+                        # EMOTES LIST COMMAND - /emotes
+                        if inPuTMsG.strip() == '/emotes':
+                            await safe_send_message(response.Data.chat_type, EMOTE_CATEGORIES, uid, chat_id, key, iv)
+
+                        # RARE EMOTES - /rare [1-12]
+                        if inPuTMsG.strip().startswith('/rare'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                rare_list = "[B][C][00FF00]💎 RARE EMOTES 💎\n[FFFFFF]1-Rare AK, 2-Rare SCAR, 3-Rare MP40, 4-Rare M1014\n5-Rare XM8, 6-Rare UMP, 7-Rare M1887, 8-Rare Groza\n9-Rare M4A1, 10-Rare Thompson, 11-Rare P90, 12-Rare Woodpecker\n[00FFFF]Usage: /rare [1-12]"
+                                await safe_send_message(response.Data.chat_type, rare_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    rare_id = parts[1]
+                                    if rare_id in RARE_EMOTES:
+                                        emote_id = int(RARE_EMOTES[rare_id])
+                                        from xC4 import Emote_k
+                                        rare_packet = await Emote_k(uid, emote_id, key, iv, region)
+                                        await SEndPacKeT('OnLine', rare_packet)
+                                        await safe_send_message(response.Data.chat_type, f"[B][C][00FF00]💎 Rare emote {rare_id} performed!", uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid rare ID! Use 1-12", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Rare emote error: {str(e)}", uid, chat_id, key, iv)
+
+                        # LEGENDARY EMOTES - /legend [1-10]
+                        if inPuTMsG.strip().startswith('/legend'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                legend_list = "[B][C][FFD700]👑 LEGENDARY EMOTES 👑\n[FFFFFF]1-Legend AK, 2-Legend SCAR, 3-Legend MP40, 4-Legend M1887\n5-Legend Groza, 6-Legend M4A1, 7-Legend P90, 8-Legend AWM\n9-Legend Desert Eagle, 10-Legend AN94\n[00FFFF]Usage: /legend [1-10]"
+                                await safe_send_message(response.Data.chat_type, legend_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    legend_id = parts[1]
+                                    if legend_id in LEGEND_EMOTES:
+                                        emote_id = int(LEGEND_EMOTES[legend_id])
+                                        from xC4 import Emote_k
+                                        legend_packet = await Emote_k(uid, emote_id, key, iv, region)
+                                        await SEndPacKeT('OnLine', legend_packet)
+                                        await safe_send_message(response.Data.chat_type, f"[B][C][FFD700]👑 Legendary emote {legend_id} performed!", uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid legend ID! Use 1-10", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Legend emote error: {str(e)}", uid, chat_id, key, iv)
+
+                        # VIP EMOTES - /vip [1-8]
+                        if inPuTMsG.strip().startswith('/vip'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                vip_list = "[B][C][9400D3]🔥 VIP EXCLUSIVE EMOTES 🔥\n[FFFFFF]1-VIP Exclusive 1, 2-VIP Exclusive 2, 3-VIP Exclusive 3\n4-VIP Exclusive 4, 5-VIP Exclusive 5, 6-VIP Exclusive 6\n7-VIP Exclusive 7, 8-VIP Exclusive 8\n[00FFFF]Usage: /vip [1-8]"
+                                await safe_send_message(response.Data.chat_type, vip_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    vip_id = parts[1]
+                                    if vip_id in VIP_EMOTES:
+                                        emote_id = int(VIP_EMOTES[vip_id])
+                                        from xC4 import Emote_k
+                                        vip_packet = await Emote_k(uid, emote_id, key, iv, region)
+                                        await SEndPacKeT('OnLine', vip_packet)
+                                        await safe_send_message(response.Data.chat_type, f"[B][C][9400D3]🔥 VIP emote {vip_id} performed!", uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid VIP ID! Use 1-8", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ VIP emote error: {str(e)}", uid, chat_id, key, iv)
+
+                        # WEAPON EMOTES - /weapon [name]
+                        if inPuTMsG.strip().startswith('/weapon'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                weapon_list = "[B][C][1E90FF]🔫 WEAPON SHOWCASE EMOTES 🔫\n[FFFFFF]ak, scar, mp40, mp40_2, m1014, m1014_2, xm8, famas\nump, m1887, woodpecker, groza, m4a1, thompson\ng18, parafal, p90, m60, awm, desert_eagle\nan94, mp5, vector, sks, m14, sniper\n[00FFFF]Usage: /weapon ak"
+                                await safe_send_message(response.Data.chat_type, weapon_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    weapon_name = parts[1].lower()
+                                    if weapon_name in WEAPON_EMOTES:
+                                        emote_id = int(WEAPON_EMOTES[weapon_name])
+                                        from xC4 import Emote_k
+                                        weapon_packet = await Emote_k(uid, emote_id, key, iv, region)
+                                        await SEndPacKeT('OnLine', weapon_packet)
+                                        await safe_send_message(response.Data.chat_type, f"[B][C][1E90FF]🔫 {weapon_name.upper()} emote performed!", uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid weapon name! Type /weapon for list", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Weapon emote error: {str(e)}", uid, chat_id, key, iv)
+
+                        # VICTORY EMOTES - /victory [1-8]
+                        if inPuTMsG.strip().startswith('/victory'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                victory_list = "[B][C][FFD700]🏆 VICTORY EMOTES 🏆\n[FFFFFF]1-Victory Dance 1, 2-Victory Dance 2, 3-Victory Dance 3\n4-Victory Dance 4, 5-Victory Dance 5, 6-Victory Dance 6\n7-Victory Dance 7, 8-Victory Dance 8\n[00FFFF]Usage: /victory [1-8]"
+                                await safe_send_message(response.Data.chat_type, victory_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    victory_id = parts[1]
+                                    if victory_id in VICTORY_EMOTES:
+                                        emote_id = int(VICTORY_EMOTES[victory_id])
+                                        from xC4 import Emote_k
+                                        victory_packet = await Emote_k(uid, emote_id, key, iv, region)
+                                        await SEndPacKeT('OnLine', victory_packet)
+                                        await safe_send_message(response.Data.chat_type, f"[B][C][FFD700]🏆 Victory emote {victory_id} performed!", uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid victory ID! Use 1-8", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Victory emote error: {str(e)}", uid, chat_id, key, iv)
+
+                        # PET EMOTES - /pet [1-8]
+                        if inPuTMsG.strip().startswith('/pet'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                pet_list = "[B][C][FF69B4]🐾 PET SHOWCASE EMOTES 🐾\n[FFFFFF]1-Kitty, 2-Puppy, 3-Panda, 4-Robot\n5-Dragon, 6-Eagle, 7-Tiger, 8-Fox\n[00FFFF]Usage: /pet [1-8]"
+                                await safe_send_message(response.Data.chat_type, pet_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    pet_id = parts[1]
+                                    if pet_id in PET_EMOTES:
+                                        emote_id = int(PET_EMOTES[pet_id])
+                                        from xC4 import Emote_k
+                                        pet_packet = await Emote_k(uid, emote_id, key, iv, region)
+                                        await SEndPacKeT('OnLine', pet_packet)
+                                        await safe_send_message(response.Data.chat_type, f"[B][C][FF69B4]🐾 Pet {pet_id} showcased!", uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid pet ID! Use 1-8", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Pet emote error: {str(e)}", uid, chat_id, key, iv)
+
+                        # VEHICLE EMOTES - /vehicle [1-6]
+                        if inPuTMsG.strip().startswith('/vehicle'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                vehicle_list = "[B][C][1E90FF]🚗 VEHICLE EMOTES 🚗\n[FFFFFF]1-SUV, 2-Sports Car, 3-Monster Truck\n4-Motorcycle, 5-Jeep, 6-Tuk-Tuk\n[00FFFF]Usage: /vehicle [1-6]"
+                                await safe_send_message(response.Data.chat_type, vehicle_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    vehicle_id = parts[1]
+                                    if vehicle_id in VEHICLE_EMOTES:
+                                        emote_id = int(VEHICLE_EMOTES[vehicle_id])
+                                        from xC4 import Emote_k
+                                        vehicle_packet = await Emote_k(uid, emote_id, key, iv, region)
+                                        await SEndPacKeT('OnLine', vehicle_packet)
+                                        await safe_send_message(response.Data.chat_type, f"[B][C][1E90FF]🚗 Vehicle {vehicle_id} showcased!", uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid vehicle ID! Use 1-6", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Vehicle emote error: {str(e)}", uid, chat_id, key, iv)
+
+                        # GRAFFITI/SPRAY EMOTES - /graffiti [1-6]
+                        if inPuTMsG.strip().startswith('/graffiti'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                graffiti_list = "[B][C][FF8C00]🎨 GRAFFITI SPRAYS 🎨\n[FFFFFF]1-Crown, 2-Skull, 3-Fire\n4-Heart, 5-GG, 6-Boss\n[00FFFF]Usage: /graffiti [1-6]"
+                                await safe_send_message(response.Data.chat_type, graffiti_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    graffiti_id = parts[1]
+                                    if graffiti_id in GRAFFITI_SPRAYS:
+                                        emote_id = int(GRAFFITI_SPRAYS[graffiti_id])
+                                        from xC4 import Emote_k
+                                        graffiti_packet = await Emote_k(uid, emote_id, key, iv, region)
+                                        await SEndPacKeT('OnLine', graffiti_packet)
+                                        await safe_send_message(response.Data.chat_type, f"[B][C][FF8C00]🎨 Graffiti {graffiti_id} sprayed!", uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid graffiti ID! Use 1-6", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Graffiti error: {str(e)}", uid, chat_id, key, iv)
+
+                        # GAME CALLOUTS - /callout [type]
+                        if inPuTMsG.strip().startswith('/callout'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                callout_list = """[B][C][FF0000]📢 QUICK GAME CALLOUTS 📢
+[FFFFFF]
+[00FFFF]enemy [FFFFFF]- ⚠️ ENEMY SPOTTED!
+[00FFFF]backup [FFFFFF]- 🆘 NEED BACKUP!
+[00FFFF]help [FFFFFF]- 📢 NEED HELP!
+[00FFFF]rush [FFFFFF]- ⚡ RUSH! RUSH! RUSH!
+[00FFFF]camp [FFFFFF]- 🎯 CAMP HERE!
+[00FFFF]loot [FFFFFF]- 💰 LOOT HERE!
+[00FFFF]medic [FFFFFF]- 🏥 NEED MEDIC!
+[00FFFF]ammo [FFFFFF]- 🔫 NEED AMMO!
+[00FFFF]thanks [FFFFFF]- 🙏 THANKS!
+[00FFFF]gg [FFFFFF]- 🏆 GG! WELL PLAYED!
+[FFFFFF]Usage: /callout enemy"""
+                                await safe_send_message(response.Data.chat_type, callout_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    callout_type = parts[1].lower()
+                                    if callout_type in GAME_CALLOUTS:
+                                        callout_msg = GAME_CALLOUTS[callout_type]
+                                        await safe_send_message(response.Data.chat_type, callout_msg, uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid callout! Type /callout for list", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Callout error: {str(e)}", uid, chat_id, key, iv)
+
+                        # TEAM LOADOUTS - /loadout [type]
+                        if inPuTMsG.strip().startswith('/loadout'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                loadout_list = """[B][C][00FF00]🎒 TEAM LOADOUTS 🎒
+[FFFFFF]
+[00FFFF]sniper [FFFFFF]- 🎯 Sniper Setup
+[00FFFF]rusher [FFFFFF]- ⚡ Rusher Setup
+[00FFFF]support [FFFFFF]- 🛡️ Support Setup
+[00FFFF]assault [FFFFFF]- 🔫 Assault Setup
+[FFFFFF]Usage: /loadout sniper"""
+                                await safe_send_message(response.Data.chat_type, loadout_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    loadout_type = parts[1].lower()
+                                    if loadout_type in LOADOUTS:
+                                        loadout_msg = LOADOUTS[loadout_type]
+                                        await safe_send_message(response.Data.chat_type, loadout_msg, uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid loadout! Type /loadout for list", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Loadout error: {str(e)}", uid, chat_id, key, iv)
+
+                        # RANK PUSH TIPS - /rank [tier]
+                        if inPuTMsG.strip().startswith('/rank'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                rank_list = """[B][C][00FF00]📈 RANK PUSH TIPS 📈
+[FFFFFF]
+[00FFFF]bronze [FFFFFF]- 🥉 Bronze Tips
+[00FFFF]silver [FFFFFF]- 🥈 Silver Tips
+[00FFFF]gold [FFFFFF]- 🥇 Gold Tips
+[00FFFF]platinum [FFFFFF]- 💎 Platinum Tips
+[00FFFF]diamond [FFFFFF]- 💠 Diamond Tips
+[00FFFF]heroic [FFFFFF]- 🔥 Heroic Tips
+[00FFFF]grandmaster [FFFFFF]- 👑 Grandmaster Tips
+[FFFFFF]Usage: /rank gold"""
+                                await safe_send_message(response.Data.chat_type, rank_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    rank_tier = parts[1].lower()
+                                    if rank_tier in RANK_TIPS:
+                                        rank_msg = RANK_TIPS[rank_tier]
+                                        await safe_send_message(response.Data.chat_type, rank_msg, uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid rank! Type /rank for list", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Rank tip error: {str(e)}", uid, chat_id, key, iv)
+
+                        # GAME MODES - /mode [type]
+                        if inPuTMsG.strip().startswith('/mode'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                mode_list = """[B][C][00FF00]🎮 GAME MODES 🎮
+[FFFFFF]
+[00FFFF]br [FFFFFF]- 🔥 Battle Royale
+[00FFFF]cs [FFFFFF]- ⚔️ Clash Squad
+[00FFFF]lone [FFFFFF]- 🐺 Lone Wolf
+[00FFFF]rush [FFFFFF]- ⚡ Rush Hour
+[00FFFF]gun [FFFFFF]- 🔫 Gun King
+[FFFFFF]Usage: /mode br"""
+                                await safe_send_message(response.Data.chat_type, mode_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    mode_type = parts[1].lower()
+                                    if mode_type in GAME_MODES:
+                                        mode_msg = GAME_MODES[mode_type]
+                                        await safe_send_message(response.Data.chat_type, mode_msg, uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid mode! Type /mode for list", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Mode error: {str(e)}", uid, chat_id, key, iv)
+
+                        # DROP LOCATIONS - /drop [location]
+                        if inPuTMsG.strip().startswith('/drop'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                drop_list = """[B][C][00FF00]📍 DROP LOCATIONS 📍
+[FFFFFF]
+[00FFFF]peaks [FFFFFF]- 🏔️ Bermuda Peaks
+[00FFFF]mill [FFFFFF]- 🏭 Bermuda Mill
+[00FFFF]dock [FFFFFF]- ⚓ Bermuda Dock
+[00FFFF]clock [FFFFFF]- 🕐 Kalahari Clock Tower
+[00FFFF]refinery [FFFFFF]- 🏭 Kalahari Refinery
+[00FFFF]alpine [FFFFFF]- 🏔️ Alpine Main Town
+[FFFFFF]Usage: /drop peaks"""
+                                await safe_send_message(response.Data.chat_type, drop_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    drop_loc = parts[1].lower()
+                                    if drop_loc in DROP_LOCATIONS:
+                                        drop_msg = DROP_LOCATIONS[drop_loc]
+                                        await safe_send_message(response.Data.chat_type, drop_msg, uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid location! Type /drop for list", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Drop location error: {str(e)}", uid, chat_id, key, iv)
+
+                        # TOURNAMENT/SCRIM SETUP - /scrim [mode]
+                        if inPuTMsG.strip().startswith('/scrim'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                scrim_list = """[B][C][00FF00]🏆 TOURNAMENT MODES 🏆
+[FFFFFF]
+[00FFFF]1v1 [FFFFFF]- 1v1 Duel
+[00FFFF]2v2 [FFFFFF]- 2v2 Team
+[00FFFF]4v4 [FFFFFF]- 4v4 Squad
+[00FFFF]solo [FFFFFF]- Solo Battle
+[00FFFF]duo [FFFFFF]- Duo Battle
+[00FFFF]squad [FFFFFF]- Full Squad
+[FFFFFF]Usage: /scrim 4v4"""
+                                await safe_send_message(response.Data.chat_type, scrim_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    scrim_mode = parts[1].lower()
+                                    if scrim_mode in TOURNAMENT_MODES:
+                                        scrim_name = TOURNAMENT_MODES[scrim_mode]
+                                        scrim_setup_msg = f"""[B][C][FFD700]🏆 TOURNAMENT SETUP 🏆
+[FFFFFF]
+Mode: [00FF00]{scrim_name}
+[FFFFFF]
+[FF0000]RULES:
+[FFFFFF]• No camping
+[FFFFFF]• Fair play
+[FFFFFF]• Follow zone
+[FFFFFF]• Best of 3 rounds
+[FFFFFF]• Good luck! 👊"""
+                                        await safe_send_message(response.Data.chat_type, scrim_setup_msg, uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid mode! Type /scrim for list", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Scrim error: {str(e)}", uid, chat_id, key, iv)
+
+                        # CHARACTER SKILLS - /char [name]
+                        if inPuTMsG.strip().startswith('/char'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                char_list = """[B][C][00FF00]🎮 CHARACTER SKILLS 🎮
+[FFFFFF]
+[00FFFF]dj [FFFFFF]- 🎧 DJ ALOK
+[00FFFF]chrono [FFFFFF]- 🛡️ CHRONO
+[00FFFF]k [FFFFFF]- 🔥 K
+[00FFFF]joseph [FFFFFF]- ⚡ JOSEPH
+[00FFFF]moco [FFFFFF]- 🔍 MOCO
+[00FFFF]clu [FFFFFF]- 🎯 CLU
+[00FFFF]wolfrahh [FFFFFF]- 🐺 WOLFRAHH
+[00FFFF]dasha [FFFFFF]- 💃 DASHA
+[FFFFFF]Usage: /char alok"""
+                                await safe_send_message(response.Data.chat_type, char_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    char_name = parts[1].lower()
+                                    if char_name in CHARACTER_SKILLS:
+                                        char_msg = CHARACTER_SKILLS[char_name]
+                                        await safe_send_message(response.Data.chat_type, char_msg, uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid character! Type /char for list", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Character error: {str(e)}", uid, chat_id, key, iv)
+
+                        # WEAPON STATS - /weaponstats [name]
+                        if inPuTMsG.strip().startswith('/weaponstats'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                weapon_stats_list = """[B][C][00FF00]🔫 WEAPON STATS GUIDE 🔫
+[FFFFFF]
+[00FFFF]ak [FFFFFF]- AK47
+[00FFFF]mp40 [FFFFFF]- MP40
+[00FFFF]awm [FFFFFF]- AWM
+[00FFFF]m1887 [FFFFFF]- M1887
+[00FFFF]scar [FFFFFF]- SCAR
+[00FFFF]m4a1 [FFFFFF]- M4A1
+[00FFFF]groza [FFFFFF]- GROZA
+[00FFFF]ump [FFFFFF]- UMP
+[FFFFFF]Usage: /weaponstats ak"""
+                                await safe_send_message(response.Data.chat_type, weapon_stats_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    weapon_name = parts[1].lower()
+                                    if weapon_name in WEAPON_STATS:
+                                        weapon_msg = WEAPON_STATS[weapon_name]
+                                        await safe_send_message(response.Data.chat_type, weapon_msg, uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid weapon! Type /weaponstats for list", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Weapon stats error: {str(e)}", uid, chat_id, key, iv)
+
+                        # STRATEGIES - /strategy [type]
+                        if inPuTMsG.strip().startswith('/strategy'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                strategy_list = """[B][C][00FF00]📋 GAME STRATEGIES 📋
+[FFFFFF]
+[00FFFF]rush [FFFFFF]- ⚡ Rush Strategy
+[00FFFF]camp [FFFFFF]- 🎯 Camp Strategy
+[00FFFF]balance [FFFFFF]- ⚖️ Balanced Strategy
+[00FFFF]sniper [FFFFFF]- 🎯 Sniper Strategy
+[FFFFFF]Usage: /strategy rush"""
+                                await safe_send_message(response.Data.chat_type, strategy_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    strategy_type = parts[1].lower()
+                                    if strategy_type in STRATEGIES:
+                                        strategy_msg = STRATEGIES[strategy_type]
+                                        await safe_send_message(response.Data.chat_type, strategy_msg, uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid strategy! Type /strategy for list", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Strategy error: {str(e)}", uid, chat_id, key, iv)
+
+                        # RAINBOW ANIMATION - /rainbow
+                        if inPuTMsG.strip() == '/rainbow':
+                            global rainbow_running, rainbow_task
+                            if rainbow_running:
+                                rainbow_running = False
+                                if rainbow_task:
+                                    rainbow_task.cancel()
+                                await safe_send_message(response.Data.chat_type, "[B][C][FF0000]🌈 Rainbow animation stopped!", uid, chat_id, key, iv)
+                            else:
+                                rainbow_running = True
+                                await safe_send_message(response.Data.chat_type, "[B][C][00FF00]🌈 Rainbow animation started!\n[B][C][FFFFFF]Type /rainbow again to stop.", uid, chat_id, key, iv)
+                                
+                                async def rainbow_loop():
+                                    color_index = 0
+                                    while rainbow_running:
+                                        try:
+                                            color = RAINBOW_COLORS[color_index % len(RAINBOW_COLORS)]
+                                            msg = f"[B][C][{color}]🌈 RAINBOW MODE ACTIVATED 🌈"
+                                            await safe_send_message(response.Data.chat_type, msg, uid, chat_id, key, iv)
+                                            color_index += 1
+                                            await asyncio.sleep(2)
+                                        except asyncio.CancelledError:
+                                            break
+                                        except Exception as e:
+                                            print(f"Rainbow error: {e}")
+                                            await asyncio.sleep(2)
+                                
+                                rainbow_task = asyncio.create_task(rainbow_loop())
+
+                        # FLASH ANIMATION - /flash
+                        if inPuTMsG.strip() == '/flash':
+                            global flash_running, flash_task
+                            if flash_running:
+                                flash_running = False
+                                if flash_task:
+                                    flash_task.cancel()
+                                await safe_send_message(response.Data.chat_type, "[B][C][FF0000]⚡ Flash animation stopped!", uid, chat_id, key, iv)
+                            else:
+                                flash_running = True
+                                await safe_send_message(response.Data.chat_type, "[B][C][00FF00]⚡ Flash animation started!\n[B][C][FFFFFF]Type /flash again to stop.", uid, chat_id, key, iv)
+                                
+                                async def flash_loop():
+                                    flash_colors = ["FF0000", "FFFFFF", "000000", "FFFF00", "00FFFF", "FF00FF"]
+                                    while flash_running:
+                                        try:
+                                            for color in flash_colors:
+                                                if not flash_running:
+                                                    break
+                                                msg = f"[B][C][{color}]⚡ FLASH MODE ⚡"
+                                                await safe_send_message(response.Data.chat_type, msg, uid, chat_id, key, iv)
+                                                await asyncio.sleep(0.5)
+                                        except asyncio.CancelledError:
+                                            break
+                                        except Exception as e:
+                                            print(f"Flash error: {e}")
+                                            await asyncio.sleep(1)
+                                
+                                flash_task = asyncio.create_task(flash_loop())
+
+                        # DANCE EMOTES - /dance [1-6]
+                        if inPuTMsG.strip().startswith('/dance'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                dance_list = "[B][C][00FF00]🕺 DANCE EMOTES 🕺\n[FFFFFF]1-Hip Hop, 2-Breakdance, 3-Salsa, 4-Disco, 5-TikTok, 6-Free Style\n[00FFFF]Usage: /dance [1-6]"
+                                await safe_send_message(response.Data.chat_type, dance_list, uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    dance_id = parts[1]
+                                    if dance_id in DANCE_EMOTES:
+                                        emote_id = int(DANCE_EMOTES[dance_id])
+                                        # Send dance emote packet
+                                        from xC4 import Emote_k
+                                        dance_packet = await Emote_k(uid, emote_id, key, iv, region)
+                                        await SEndPacKeT('OnLine', dance_packet)
+                                        await safe_send_message(response.Data.chat_type, f"[B][C][00FF00]🕺 Dance {dance_id} performed!", uid, chat_id, key, iv)
+                                    else:
+                                        await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Invalid dance ID! Use 1-6", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Dance error: {str(e)}", uid, chat_id, key, iv)
+
+                        # SUPER EMOTE SPAM - /super [emote_id] [count]
+                        if inPuTMsG.strip().startswith('/super'):
+                            parts = inPuTMsG.strip().split()
+                            if len(parts) < 2:
+                                await safe_send_message(response.Data.chat_type, "[B][C][FF0000]❌ Usage: /super [emote_id] [count]\nExample: /super 1 50", uid, chat_id, key, iv)
+                            else:
+                                try:
+                                    emote_id = int(parts[1])
+                                    count = int(parts[2]) if len(parts) > 2 else 30
+                                    count = min(count, 100)  # Max 100
+                                    
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][00FF00]🚀 Starting SUPER emote spam: {count} emotes!", uid, chat_id, key, iv)
+                                    
+                                    from xC4 import Emote_k
+                                    for i in range(count):
+                                        try:
+                                            emote_packet = await Emote_k(uid, ALL_EMOTE.get(emote_id, 909000001), key, iv, region)
+                                            await SEndPacKeT('OnLine', emote_packet)
+                                            await asyncio.sleep(0.1)
+                                        except Exception as e:
+                                            print(f"Super emote error: {e}")
+                                            continue
+                                    
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][00FF00]✅ Super emote spam completed!", uid, chat_id, key, iv)
+                                except Exception as e:
+                                    await safe_send_message(response.Data.chat_type, f"[B][C][FF0000]❌ Super error: {str(e)}", uid, chat_id, key, iv)
+
+                        # AUTO-ACCEPT TOGGLE - /autoaccept
+                        if inPuTMsG.strip() == '/autoaccept':
+                            global auto_accept_invite
+                            auto_accept_invite = not auto_accept_invite
+                            status = "[00FF00]ENABLED ✅" if auto_accept_invite else "[FF0000]DISABLED ❌"
+                            await safe_send_message(response.Data.chat_type, f"[B][C][00FFFF]🤖 Auto-accept invitations: {status}", uid, chat_id, key, iv)
 
                         if inPuTMsG.startswith(("/3")):
                             # Process /3 command - Create 3 player group

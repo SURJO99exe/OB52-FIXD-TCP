@@ -531,19 +531,6 @@ async def RedZed_SendInv(bot_uid, target_uid, key, iv):
     }
     return GeneRaTePk((await CrEaTe_ProTo(fields)).hex(), '0515', key, iv)
 
-async def RejectMSGtaxt(squad_owner, uid, key, iv):
-    """Send rejection message packet"""
-    fields = {
-        1: 5,
-        2: {
-            1: int(squad_owner),
-            2: 1,
-            3: int(uid),
-            4: "Bot is busy right now!"
-        }
-    }
-    return GeneRaTePk((await CrEaTe_ProTo(fields)).hex(), '0515', key, iv)
-
 async def xAuThSTarTuP(uid, token, timestamp, key, iv):
     """Generate auth startup packet"""
     fields = {
@@ -560,6 +547,32 @@ async def xAuThSTarTuP(uid, token, timestamp, key, iv):
         }
     }
     return GeneRaTePk((await CrEaTe_ProTo(fields)).hex(), '0515', key, iv)
+
+async def send_kick_packet(target_uid, key, iv, region):
+    """Generate kick member packet"""
+    fields = {
+        1: 6,
+        2: {
+            1: int(target_uid)
+        }
+    }
+    packet_type = '0515'
+    if region.lower() == "ind": packet_type = '0514'
+    elif region.lower() == "bd": packet_type = '0519'
+    return GeneRaTePk((await CrEaTe_ProTo(fields)).hex(), packet_type, key, iv)
+
+async def send_start_packet(key, iv, region):
+    """Generate start match packet"""
+    fields = {
+        1: 9,
+        2: {
+            1: 1
+        }
+    }
+    packet_type = '0515'
+    if region.lower() == "ind": packet_type = '0514'
+    elif region.lower() == "bd": packet_type = '0519'
+    return GeneRaTePk((await CrEaTe_ProTo(fields)).hex(), packet_type, key, iv)
 
 def encrypted_proto(encoded_hex):
     """Encrypt proto payload"""
