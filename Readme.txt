@@ -68,13 +68,125 @@
 /flash                   → Flash animation mode
 /super [id] [count]      → Spam any emote (max 100)
 
-WEAPON SHOWCASE (/weapon [name]):
-• ak, scar, mp40, mp40_2, m1014, m1014_2
-• xm8, famas, ump, m1887, woodpecker
-• groza, m4a1, thompson, g18, parafal
-• p90, m60, awm, desert_eagle, an94
-• mp5, vector, sks, m14, sniper
+═══════════════════════════════════════════════════════════════════════════════
+                         📊 COMPLETE EMOTE CODES
+═══════════════════════════════════════════════════════════════════════════════
 
+🎵 DANCE EMOTES (/dance [1-8]):
+Code: 909000001-909000008
+1. Dance 1          → 909000001
+2. Dance 2          → 909000002
+3. Dance 3          → 909000003
+4. Dance 4          → 909000004
+5. Dance 5          → 909000005
+6. Dance 6          → 909000006
+
+💎 RARE EMOTES (/rare [1-12]):
+Code: 909052001-909052012
+1. Rare AK          → 909052001
+2. Rare SCAR        → 909052002
+3. Rare MP40        → 909052003
+4. Rare M1014       → 909052004
+5. Rare XM8         → 909052005
+6. Rare UMP         → 909052006
+7. Rare M1887       → 909052007
+8. Rare Groza       → 909052008
+9. Rare M4A1        → 909052009
+10. Rare Thompson   → 909052010
+11. Rare P90        → 909052011
+12. Rare Woodpecker → 909052012
+
+👑 LEGENDARY EMOTES (/legend [1-10]):
+Code: 909053001-909053010
+1. Legend AK          → 909053001
+2. Legend SCAR        → 909053002
+3. Legend MP40        → 909053003
+4. Legend M1887       → 909053004
+5. Legend Groza       → 909053005
+6. Legend M4A1        → 909053006
+7. Legend P90         → 909053007
+8. Legend AWM         → 909053008
+9. Legend Desert Eagle → 909053009
+10. Legend AN94      → 909053010
+
+⭐ VIP EXCLUSIVE EMOTES (/vip [1-8]):
+Code: 909054001-909054008
+1. VIP Exclusive 1  → 909054001
+2. VIP Exclusive 2  → 909054002
+3. VIP Exclusive 3  → 909054003
+4. VIP Exclusive 4  → 909054004
+5. VIP Exclusive 5  → 909054005
+6. VIP Exclusive 6  → 909054006
+7. VIP Exclusive 7  → 909054007
+8. VIP Exclusive 8  → 909054008
+
+🏆 VICTORY EMOTES (/victory [1-8]):
+Code: 909000200-909000207
+1. Victory Dance 1  → 909000200
+2. Victory Dance 2  → 909000201
+3. Victory Dance 3  → 909000202
+4. Victory Dance 4  → 909000203
+5. Victory Dance 5  → 909000204
+6. Victory Dance 6  → 909000205
+7. Victory Dance 7  → 909000206
+8. Victory Dance 8  → 909000207
+
+🐾 PET EMOTES (/pet [1-8]):
+Code: 909055001-909055008
+1. Pet - Kitty      → 909055001
+2. Pet - Puppy      → 909055002
+3. Pet - Panda      → 909055003
+4. Pet - Robot      → 909055004
+5. Pet - Dragon     → 909055005
+6. Pet - Eagle      → 909055006
+7. Pet - Tiger      → 909055007
+8. Pet - Fox        → 909055008
+
+🚗 VEHICLE EMOTES (/vehicle [1-6]):
+Code: 909056001-909056006
+1. SUV              → 909056001
+2. Sports Car       → 909056002
+3. Monster Truck    → 909056003
+4. Motorcycle       → 909056004
+5. Jeep             → 909056005
+6. Tuk-Tuk          → 909056006
+
+🎨 GRAFFITI/SPRAY EMOTES (/graffiti [1-6]):
+Code: 909057001-909057006
+1. Crown Spray      → 909057001
+2. Skull Spray      → 909057002
+3. Fire Spray       → 909057003
+4. Heart Spray      → 909057004
+5. GG Spray         → 909057005
+6. Boss Spray       → 909057006
+
+🔫 WEAPON SHOWCASE EMOTES (/weapon [name]):
+1. AK               → 909000063
+2. SCAR             → 909000068
+3. MP40             → 909000075
+4. MP40 (2nd)       → 909040010
+5. M1014            → 909000081
+6. M1014 (2nd)      → 909039011
+7. XM8              → 909000085
+8. FAMAS            → 909000090
+9. UMP              → 909000098
+10. M1887           → 909035007
+11. Woodpecker      → 909042008
+12. Groza           → 909041005
+13. M4A1            → 909033001
+14. Thompson        → 909038010
+15. G18             → 909038012
+16. Parafal         → 909045001
+17. P90             → 909049010
+18. M60             → 909051003
+19. AWM             → 909036008
+20. Desert Eagle    → 909037012
+21. AN94            → 909048008
+22. MP5             → 909039004
+23. Vector          → 909040008
+24. SKS             → 909044012
+25. M14             → 909045012
+26. Sniper          → 909046012
 
 ═══════════════════════════════════════════════════════════════════════════════
                     📋 GAME STRATEGY & INFO (12)
